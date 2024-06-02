@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: 'Dockerfile'
+    container_name: wishdream-app
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/webapp:cached
+      - bundle:/usr/local/bundle:cached
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    environment:
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      WISHDREAM_DATABASE_PASSWORD: ${WISHDREAM_DATABASE_PASSWORD}
+    env_file:
+    - .env
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:13
+    container_name: docker-db-service
+    environment:
+      POSTGRES_PASSWORD: ${WISHDREAM_DATABASE_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  chrome:
+    image: selenium/standalone-chrome:latest
+    ports:
+      - 4444:4444
+
+volumes:
+  postgres-data:
+  bundle:
